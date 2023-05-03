@@ -19,7 +19,6 @@ func Conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
 func middleware(next http.Handler) http.Handler {
 	// собираем Handler приведением типа
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println(r.Header.Get("Content-Type"))
 		// разрешаем запросы cross-domain
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		next.ServeHTTP(w, r)
