@@ -1,10 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strings"
+
+	hashids "github.com/speps/go-hashids/v2"
 )
 
 type Middleware func(http.Handler) http.Handler
@@ -25,23 +27,69 @@ func middleware(next http.Handler) http.Handler {
 	})
 }
 
+func generateUrl(host string, path string) string {
+	var sb strings.Builder
+	sb.WriteString(host)
+	sb.WriteString("/")
+	sb.WriteString(path)
+
+	return sb.String()
+}
+
+var m = make(map[string]string)
+
 func GetHandler(w http.ResponseWriter, r *http.Request) {
+
 	switch r.Method {
 	case "POST":
 		b, err := io.ReadAll(r.Body)
+
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
 		}
 
-		fmt.Println(string(b))
+		if len([]rune(string(b))) < 2 {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 
-		w.Write([]byte(b))
+		if m[string(b)] != "" {
+			w.WriteHeader(http.StatusOK)
+
+			w.Write([]byte(generateUrl(r.Host, m[string(b)])))
+			return
+		}
+
+		hd := hashids.NewData()
+		hd.Salt = string(b)
+		hd.MinLength = 7
+		h, _ := hashids.NewWithData(hd)
+		e, _ := h.Encode([]int{10, 543, 321, 22})
+
+		m[string(b)] = e
+
 		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(generateUrl(r.Host, e)))
 	case "GET":
-		w.Header().Set("Location", "http://localhost:8080")
-		w.WriteHeader(http.StatusTemporaryRedirect)
-	default:
+		if len([]rune(r.URL.Path)) > 1 {
+			sl := strings.Split(r.URL.Path, "/")[1]
+			var reqUrl string
+
+			for k, v := range m {
+				if v == sl {
+					reqUrl = k
+				}
+			}
+
+			if reqUrl != "" {
+				w.Header().Set("Location", reqUrl)
+				w.WriteHeader(http.StatusTemporaryRedirect)
+				return
+			}
+
+		}
+
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
