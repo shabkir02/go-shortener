@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -40,6 +41,8 @@ var m = make(map[string]string)
 
 func GetHandler(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println(m)
+
 	switch r.Method {
 	case "POST":
 		b, err := io.ReadAll(r.Body)
@@ -78,7 +81,11 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 
 			for k, v := range m {
 				if v == sl {
-					reqUrl = k
+					if strings.Contains(k, "https://") || strings.Contains(k, "http://") {
+						reqUrl = k
+					} else {
+						reqUrl = "http://" + k
+					}
 				}
 			}
 
@@ -87,9 +94,10 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusTemporaryRedirect)
 				return
 			}
-
+			return
 		}
 
+		fmt.Println("YES")
 		w.WriteHeader(http.StatusNotFound)
 	}
 }
