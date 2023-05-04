@@ -60,7 +60,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 		if m[string(b)] != "" {
 			w.WriteHeader(http.StatusOK)
 
-			w.Write([]byte(generateUrl(r.Host, m[string(b)])))
+			w.Write([]byte(generateURL(r.Host, m[string(b)])))
 			return
 		}
 
@@ -73,7 +73,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 		m[string(b)] = e
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(generateUrl(r.Host, e)))
+		w.Write([]byte(generateURL(r.Host, e)))
 	case "GET":
 		if len([]rune(r.URL.Path)) > 1 {
 			sl := strings.Split(r.URL.Path, "/")[1]
