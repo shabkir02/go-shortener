@@ -28,7 +28,7 @@ func middleware(next http.Handler) http.Handler {
 	})
 }
 
-func generateUrl(host string, path string) string {
+func generateURL(host string, path string) string {
 	var sb strings.Builder
 	sb.WriteString(host)
 	sb.WriteString("/")
@@ -77,20 +77,20 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		if len([]rune(r.URL.Path)) > 1 {
 			sl := strings.Split(r.URL.Path, "/")[1]
-			var reqUrl string
+			var reqURL string
 
 			for k, v := range m {
 				if v == sl {
 					if strings.Contains(k, "https://") || strings.Contains(k, "http://") {
-						reqUrl = k
+						reqURL = k
 					} else {
-						reqUrl = "http://" + k
+						reqURL = "http://" + k
 					}
 				}
 			}
 
-			if reqUrl != "" {
-				w.Header().Set("Location", reqUrl)
+			if reqURL != "" {
+				w.Header().Set("Location", reqURL)
 				w.WriteHeader(http.StatusTemporaryRedirect)
 				return
 			}
