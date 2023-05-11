@@ -2,7 +2,7 @@ package transport
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -56,9 +56,9 @@ func TestHandler_WriteURL(t *testing.T) {
 			result := w.Result()
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
-			userResult, err := ioutil.ReadAll(result.Body)
+			defer result.Body.Close()
+			userResult, err := io.ReadAll(result.Body)
 			require.NoError(t, err)
-			err = result.Body.Close()
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.urlRes, string(userResult))
 		})
