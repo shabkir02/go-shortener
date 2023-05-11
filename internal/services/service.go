@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"strings"
 
 	hashids "github.com/speps/go-hashids/v2"
@@ -16,7 +15,6 @@ func NewService() *URLService {
 }
 
 func (h *URLService) WriteURL(URL string) string {
-	fmt.Println(h.URLMap)
 	hd := hashids.NewData()
 	hd.Salt = string(URL)
 	hd.MinLength = 7
@@ -25,7 +23,6 @@ func (h *URLService) WriteURL(URL string) string {
 
 	h.URLMap[string(URL)] = e
 
-	fmt.Println(h.URLMap)
 	return e
 }
 

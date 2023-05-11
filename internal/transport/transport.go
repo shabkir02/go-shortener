@@ -69,7 +69,7 @@ func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 		u := h.url.GetURL(r.URL.Path)
 
 		if u != "" {
-			w.Header().Set("Location", u)
+			// w.Header().Set("Location", u)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return
 		}
