@@ -7,15 +7,6 @@ import (
 	hashids "github.com/speps/go-hashids/v2"
 )
 
-func GenerateURL(host string, path string) string {
-	var sb strings.Builder
-	sb.WriteString(host)
-	sb.WriteString("/")
-	sb.WriteString(path)
-
-	return sb.String()
-}
-
 type URLService struct {
 	URLMap map[string]string
 }

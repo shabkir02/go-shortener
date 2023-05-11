@@ -1,9 +1,9 @@
 package transport
 
 import (
-	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/utils"
@@ -11,6 +11,20 @@ import (
 
 type Handler struct {
 	url *services.URLService
+}
+
+func GenerateURL(host string, path string) string {
+	var sb strings.Builder
+	sb.WriteString(host)
+	sb.WriteString("/")
+	sb.WriteString(path)
+	s := sb.String()
+
+	if strings.Contains(s, "https://") || strings.Contains(s, "http://") {
+		return s
+	} else {
+		return "http://" + s
+	}
 }
 
 func NewURLHandler(u *services.URLService) *Handler {
@@ -34,9 +48,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fmt.Println(h.url.URLMap)
-	fmt.Println(h)
-	fmt.Println(h.url)
+
 	if h.url.URLMap[u] != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(utils.GenerateURL(r.Host, h.url.URLMap[u])))
