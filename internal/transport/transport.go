@@ -3,7 +3,6 @@ package transport
 import (
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/utils"
@@ -11,20 +10,6 @@ import (
 
 type Handler struct {
 	url *services.URLService
-}
-
-func GenerateURL(host string, path string) string {
-	var sb strings.Builder
-	sb.WriteString(host)
-	sb.WriteString("/")
-	sb.WriteString(path)
-	s := sb.String()
-
-	if strings.Contains(s, "https://") || strings.Contains(s, "http://") {
-		return s
-	} else {
-		return "http://" + s
-	}
 }
 
 func NewURLHandler(u *services.URLService) *Handler {
@@ -56,8 +41,9 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newURL := h.url.WriteURL(u)
+	ur := utils.GenerateURL(r.Host, newURL)
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(utils.GenerateURL(r.Host, newURL)))
+	w.Write([]byte("http://" + ur))
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +55,7 @@ func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 		u := h.url.GetURL(r.URL.Path)
 
 		if u != "" {
-			// w.Header().Set("Location", u)
+			w.Header().Set("Location", u)
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return
 		}
