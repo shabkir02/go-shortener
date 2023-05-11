@@ -50,14 +50,19 @@ func TestHandler_WriteURL(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, tt.request, bytes.NewBuffer([]byte(tt.urlBody)))
 			w := httptest.NewRecorder()
 			service := services.NewService()
+
 			handlers := NewURLHandler(service)
 			hFun := http.HandlerFunc(handlers.WriteURL)
+
 			hFun(w, request)
 			result := w.Result()
+			defer result.Body.Close()
+
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
-			defer result.Body.Close()
+
 			userResult, err := io.ReadAll(result.Body)
+
 			require.NoError(t, err)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.urlRes, string(userResult))
@@ -112,6 +117,8 @@ func TestHandler_GetURL(t *testing.T) {
 			hFun := http.HandlerFunc(handlers.GetURL)
 			hFun(w, request)
 			result := w.Result()
+			defer result.Body.Close()
+			//todo close body
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.urlRes, string(result.Header.Get("Location")))
 		})
