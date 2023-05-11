@@ -41,9 +41,8 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newURL := h.url.WriteURL(u)
-	ur := utils.GenerateURL(r.Host, newURL)
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("http://" + ur))
+	w.Write([]byte(utils.GenerateURL(r.Host, newURL)))
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
