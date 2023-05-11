@@ -21,6 +21,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusBadRequest)
 	}
 
+	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	u := string(body)
 
@@ -34,6 +35,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-type", "text/plain; charset=utf-8")
 	if h.url.URLMap[u] != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(utils.GenerateURL(r.Host, h.url.URLMap[u])))
