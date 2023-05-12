@@ -50,9 +50,9 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
-	hashID := chi.URLParam(r, "id")
+	hash := chi.URLParam(r, "hash")
 
-	u := h.url.GetURL(hashID)
+	u := h.url.GetURL(hash)
 
 	fmt.Println(u)
 

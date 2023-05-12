@@ -17,7 +17,7 @@ func NewRouter() chi.Router {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Get("/{id}", handlers.GetURL)
+	r.Get("/{hash}", handlers.GetURL)
 	r.Post("/", handlers.WriteURL)
 
 	return r
