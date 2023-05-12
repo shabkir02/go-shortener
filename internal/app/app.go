@@ -1,16 +1,13 @@
 package app
 
 import (
-	"net/http"
-
-	"github.com/fatih/color"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/transport"
 )
 
-func StartServer() {
+func NewRouter() chi.Router {
 	service := services.NewService()
 	handlers := transport.NewURLHandler(service)
 	r := chi.NewRouter()
@@ -23,6 +20,5 @@ func StartServer() {
 	r.Get("/{id}", handlers.GetURL)
 	r.Post("/", handlers.WriteURL)
 
-	color.Green("Server started.")
-	http.ListenAndServe(":8080", r)
+	return r
 }
