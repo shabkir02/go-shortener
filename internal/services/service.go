@@ -27,11 +27,10 @@ func (h *URLService) WriteURL(URL string) string {
 }
 
 func (h *URLService) GetURL(hashURL string) string {
-	sl := strings.Split(hashURL, "/")[1]
 	var reqURL string
 
 	for k, v := range h.URLMap {
-		if v == sl {
+		if v == hashURL {
 			if strings.Contains(k, "https://") || strings.Contains(k, "http://") {
 				reqURL = k
 			} else {

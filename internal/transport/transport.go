@@ -1,9 +1,11 @@
 package transport
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/utils"
 )
@@ -48,21 +50,18 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "method not allowed", http.StatusBadRequest)
+	hashId := chi.URLParam(r, "id")
+
+	u := h.url.GetURL(hashId)
+
+	fmt.Println(u)
+
+	if u != "" {
+		w.Header().Set("Location", u)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		return
 	}
 
-	if len([]rune(r.URL.Path)) > 1 {
-		u := h.url.GetURL(r.URL.Path)
+	http.Error(w, "bad request", http.StatusBadRequest)
 
-		if u != "" {
-			w.Header().Set("Location", u)
-			w.WriteHeader(http.StatusTemporaryRedirect)
-			return
-		}
-
-		http.Error(w, "bad request", http.StatusBadRequest)
-	}
-
-	http.Error(w, "", http.StatusBadRequest)
 }
