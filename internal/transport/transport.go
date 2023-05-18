@@ -2,7 +2,6 @@ package transport
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -55,7 +54,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(utils.GenerateURL(r.Host, newURL)))
 }
 
-func (h Handler) WhriteUrlJSON(w http.ResponseWriter, r *http.Request) {
+func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -99,8 +98,6 @@ func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 	hash := chi.URLParam(r, "hash")
 
 	u := h.url.GetURL(hash)
-
-	fmt.Println(u)
 
 	if u != "" {
 		w.Header().Set("Location", u)
