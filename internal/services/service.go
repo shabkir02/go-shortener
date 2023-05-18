@@ -7,11 +7,24 @@ import (
 )
 
 type URLService struct {
-	URLMap map[string]string
+	urlMap map[string]string
 }
 
 func NewService() *URLService {
-	return &URLService{URLMap: make(map[string]string)}
+	return &URLService{urlMap: make(map[string]string)}
+}
+
+func (h *URLService) CheckURL(URL string) *string {
+
+	if v, ok := h.urlMap[URL]; ok {
+		return &v
+	}
+
+	return nil
+}
+
+func (h *URLService) AddURL(key string, value string) {
+	h.urlMap[key] = value
 }
 
 func (h *URLService) WriteURL(URL string) string {
@@ -21,7 +34,7 @@ func (h *URLService) WriteURL(URL string) string {
 	hwd, _ := hashids.NewWithData(hd)
 	e, _ := hwd.Encode([]int{10, 543, 321, 22})
 
-	h.URLMap[string(URL)] = e
+	h.urlMap[string(URL)] = e
 
 	return e
 }
@@ -29,7 +42,7 @@ func (h *URLService) WriteURL(URL string) string {
 func (h *URLService) GetURL(hashURL string) string {
 	var reqURL string
 
-	for k, v := range h.URLMap {
+	for k, v := range h.urlMap {
 		if v == hashURL {
 			if strings.Contains(k, "https://") || strings.Contains(k, "http://") {
 				reqURL = k

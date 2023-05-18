@@ -121,7 +121,7 @@ func TestHandler_GetURL(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	handlers.url.URLMap["https://music.yandex.ru/artist/8095900"] = "g8SrEcqnUX"
+	handlers.url.AddURL("https://music.yandex.ru/artist/8095900", "g8SrEcqnUX")
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
