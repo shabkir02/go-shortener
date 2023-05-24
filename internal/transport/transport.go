@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shabkir02/go-shortener/internal/repository"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/utils"
 )
@@ -27,31 +28,31 @@ func NewURLHandler(u *services.URLService) *Handler {
 func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
-	u := string(body)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	u := string(body)
 
 	if len([]rune(u)) < 2 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-type", "text/plain; charset=utf-8")
-
-	c := h.url.CheckURL(u)
-
-	if c != nil {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(utils.GenerateURL(r.Host, *c)))
+	c, status := h.url.GetURL("", u)
+	if status == http.StatusBadRequest {
 		return
 	}
 
-	newURL := h.url.WriteURL(u)
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(utils.GenerateURL(r.Host, newURL)))
+	if status != http.StatusBadRequest {
+		w.Header().Set("Content-type", "text/plain")
+		w.WriteHeader(status)
+		w.Write([]byte(utils.GenerateURL(r.Host, c.HashURL)))
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
@@ -59,52 +60,45 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	var value ShortenURL
 	json.Unmarshal(body, &value)
 
-	w.Header().Set("Content-type", "application/json; charset=utf-8")
+	v, status := h.url.GetURL("", value.URL)
+	if status == http.StatusBadRequest {
+		http.Error(w, "does not exist", http.StatusBadRequest)
+		return
+	}
 
-	v := h.url.CheckURL(value.URL)
-
-	if v == nil {
-		newURL := h.url.WriteURL(value.URL)
-
+	if status != http.StatusBadRequest {
 		m, err := json.Marshal(ShortenURLRes{
-			ResultURL: utils.GenerateURL(r.Host, newURL),
+			ResultURL: utils.GenerateURL(r.Host, v.HashURL),
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Content-type", "application/json")
+		w.WriteHeader(status)
 		w.Write(m)
 		return
 	}
 
-	m, err := json.Marshal(ShortenURLRes{
-		ResultURL: utils.GenerateURL(r.Host, *v),
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write(m)
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 	hash := chi.URLParam(r, "hash")
 
-	u := h.url.GetURL(hash)
-
-	if u != "" {
-		w.Header().Set("Location", u)
-		w.WriteHeader(http.StatusTemporaryRedirect)
+	u, _ := h.url.GetURL(hash, "")
+	if u == (repository.ShortURLStruct{}) {
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
-	http.Error(w, "bad request", http.StatusBadRequest)
-
+	w.Header().Set("Location", utils.ValidateURL(u.URL))
+	w.WriteHeader(http.StatusTemporaryRedirect)
 }

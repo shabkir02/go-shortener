@@ -18,20 +18,10 @@ func GenerateURL(host string, path string) string {
 	}
 }
 
-// type Middleware func(http.Handler) http.Handler
-
-// func Conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
-// 	for _, middleware := range middlewares {
-// 		h = middleware(h)
-// 	}
-// 	return h
-// }
-
-// func middleware(next http.Handler) http.Handler {
-// 	// собираем Handler приведением типа
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		// разрешаем запросы cross-domain
-// 		w.Header().Set("Access-Control-Allow-Origin", "*")
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
+func ValidateURL(URL string) string {
+	if strings.Contains(URL, "https://") || strings.Contains(URL, "http://") {
+		return URL
+	} else {
+		return "http://" + URL
+	}
+}
