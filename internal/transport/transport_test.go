@@ -1,12 +1,14 @@
 package transport
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/caarlos0/env/v8"
 	"github.com/go-chi/chi/v5"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/stretchr/testify/assert"
@@ -14,6 +16,11 @@ import (
 )
 
 func TestHandler_WriteURL(t *testing.T) {
+	cfg := config{}
+	if err := env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+
 	type want struct {
 		contentType string
 		statusCode  int
@@ -30,7 +37,7 @@ func TestHandler_WriteURL(t *testing.T) {
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				urlRes:      "http://example.com/g8SrEcqnUX",
+				urlRes:      "http://localhost:8080/g8SrEcqnUX",
 			},
 			request: "/",
 			urlBody: "https://music.yandex.ru/artist/8095900",
@@ -40,7 +47,7 @@ func TestHandler_WriteURL(t *testing.T) {
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusOK,
-				urlRes:      "http://example.com/g8SrEcqnUX",
+				urlRes:      "http://localhost:8080/g8SrEcqnUX",
 			},
 			request: "/",
 			urlBody: "https://music.yandex.ru/artist/8095900",
@@ -50,7 +57,7 @@ func TestHandler_WriteURL(t *testing.T) {
 			want: want{
 				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				urlRes:      "http://example.com/gLSwmULGCx",
+				urlRes:      "http://localhost:8080/gLSwmULGCx",
 			},
 			request: "/",
 			urlBody: "https://pkg.go.dev/net/http",
