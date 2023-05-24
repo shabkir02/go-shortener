@@ -36,6 +36,7 @@ func (h *URLService) GetURL(hashURL string, URL string) (s repository.ShortURLSt
 	}
 
 	u := h.storage.GetURL(ch)
+
 	if u == (repository.ShortURLStruct{}) && URL == "" {
 		return repository.ShortURLStruct{}, http.StatusBadRequest
 	}

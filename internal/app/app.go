@@ -19,7 +19,7 @@ func NewRouter() chi.Router {
 
 	r.Get("/{hash}", handlers.GetURL)
 	r.Post("/", handlers.WriteURL)
-	r.Post("/shorten", handlers.WhriteURLJSON)
+	r.Post("/api/shorten", handlers.WhriteURLJSON)
 
 	return r
 }
