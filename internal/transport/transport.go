@@ -2,14 +2,11 @@ package transport
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
-	"log"
 	"net/http"
 
-	"github.com/caarlos0/env/v8"
 	"github.com/go-chi/chi/v5"
-	"github.com/shabkir02/go-shortener/internal/repository"
+	"github.com/shabkir02/go-shortener/internal/models"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/utils"
 )
@@ -25,15 +22,8 @@ type ShortenURLRes struct {
 	ResultURL string `json:"result"`
 }
 
-type config struct {
-	BaseURL string `env:"BASE_URL" envDefault:"http://localhost:8080"`
-}
-
 func NewURLHandler(u *services.URLService) *Handler {
-	cfg := config{}
-	if err := env.Parse(&cfg); err != nil {
-		log.Fatal(err)
-	}
+	cfg := utils.GetConfig()
 
 	return &Handler{service: u, baseURL: cfg.BaseURL}
 }
@@ -59,10 +49,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if status != http.StatusBadRequest {
-		cfg := config{}
-		if err := env.Parse(&cfg); err != nil {
-			fmt.Printf("%+v\n", err)
-		}
+		cfg := utils.GetConfig()
 
 		w.Header().Set("Content-type", "text/plain")
 		w.WriteHeader(status)
@@ -91,10 +78,7 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if status != http.StatusBadRequest {
-		cfg := config{}
-		if err := env.Parse(&cfg); err != nil {
-			log.Fatal(err)
-		}
+		cfg := utils.GetConfig()
 
 		m, err := json.Marshal(ShortenURLRes{
 			ResultURL: utils.GenerateURL(cfg.BaseURL, v.HashURL),
@@ -117,7 +101,7 @@ func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 	hash := chi.URLParam(r, "hash")
 
 	u, _ := h.service.GetURL(hash, "")
-	if u == (repository.ShortURLStruct{}) {
+	if u == (models.ShortURLStruct{}) {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}

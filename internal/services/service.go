@@ -1,8 +1,10 @@
 package services
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/shabkir02/go-shortener/internal/models"
 	"github.com/shabkir02/go-shortener/internal/repository"
 	hashids "github.com/speps/go-hashids/v2"
 )
@@ -26,10 +28,21 @@ func (h *URLService) generateHash(URL string) string {
 	return e
 }
 
-func (h *URLService) GetURL(hashURL string, URL string) (s repository.ShortURLStruct, status int) {
+func (h *URLService) WriteURL(hashURL string, URL string) (models.ShortURLStruct, error) {
+	a := []models.ShortURLStruct{{HashURL: hashURL, URL: URL}}
+
+	newEntry, err := h.storage.AddURL(a)
+	if err != nil {
+		return models.ShortURLStruct{}, errors.New("somthing went wrong")
+	}
+
+	return newEntry[0], nil
+}
+
+func (h *URLService) GetURL(hashURL string, URL string) (s models.ShortURLStruct, status int) {
 	ch := hashURL
 	if hashURL == "" && URL == "" {
-		return repository.ShortURLStruct{}, http.StatusBadRequest
+		return models.ShortURLStruct{}, http.StatusBadRequest
 	}
 	if hashURL == "" && URL != "" {
 		ch = h.generateHash(URL)
@@ -37,13 +50,13 @@ func (h *URLService) GetURL(hashURL string, URL string) (s repository.ShortURLSt
 
 	u := h.storage.GetURL(ch)
 
-	if u == (repository.ShortURLStruct{}) && URL == "" {
-		return repository.ShortURLStruct{}, http.StatusBadRequest
+	if u == (models.ShortURLStruct{}) && URL == "" {
+		return models.ShortURLStruct{}, http.StatusBadRequest
 	}
-	if u == (repository.ShortURLStruct{}) && URL != "" {
-		newEntry, err := h.storage.AddURL(repository.ShortURLStruct{HashURL: ch, URL: URL})
+	if u == (models.ShortURLStruct{}) && URL != "" {
+		newEntry, err := h.WriteURL(ch, URL)
 		if err != nil {
-			return repository.ShortURLStruct{}, http.StatusBadRequest
+			return models.ShortURLStruct{}, http.StatusBadRequest
 		}
 
 		return newEntry, http.StatusCreated

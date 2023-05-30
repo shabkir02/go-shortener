@@ -5,12 +5,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/transport"
+	"github.com/shabkir02/go-shortener/internal/utils"
 )
 
 func NewRouter() chi.Router {
 	service := services.NewService()
 	handlers := transport.NewURLHandler(service)
 	r := chi.NewRouter()
+
+	urls := utils.InitFileManager()
+
+	for _, v := range *urls {
+		service.WriteURL(v.HashURL, v.URL)
+	}
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)

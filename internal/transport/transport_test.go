@@ -1,14 +1,12 @@
 package transport
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/caarlos0/env/v8"
 	"github.com/go-chi/chi/v5"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/stretchr/testify/assert"
@@ -16,11 +14,6 @@ import (
 )
 
 func TestHandler_WriteURL(t *testing.T) {
-	cfg := config{}
-	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
-	}
-
 	type want struct {
 		contentType string
 		statusCode  int
