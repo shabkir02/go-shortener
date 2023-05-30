@@ -18,7 +18,7 @@ func InitFileManager() *[]models.ShortURLStruct {
 
 	urls, err := consumer.ReadURLs()
 	if err != nil {
-		log.Fatal(err)
+		return &[]models.ShortURLStruct{}
 	}
 
 	return urls
