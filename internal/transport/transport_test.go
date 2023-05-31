@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shabkir02/go-shortener/internal/services"
+	"github.com/shabkir02/go-shortener/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -57,6 +58,7 @@ func TestHandler_WriteURL(t *testing.T) {
 		},
 	}
 
+	utils.InitConfig()
 	service := services.NewService()
 	handlers := NewURLHandler(service)
 	r := chi.NewRouter()
@@ -115,6 +117,7 @@ func TestHandler_GetURL(t *testing.T) {
 		},
 	}
 
+	utils.InitConfig()
 	service := services.NewService()
 	handlers := NewURLHandler(service)
 	r := chi.NewRouter()
