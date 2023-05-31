@@ -28,9 +28,9 @@ func TestHandler_WriteURL(t *testing.T) {
 		{
 			name: "Сохранение записи",
 			want: want{
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				urlRes:      "http://example.com/g8SrEcqnUX",
+				urlRes:      "http://localhost:8080/g8SrEcqnUX",
 			},
 			request: "/",
 			urlBody: "https://music.yandex.ru/artist/8095900",
@@ -38,9 +38,9 @@ func TestHandler_WriteURL(t *testing.T) {
 		{
 			name: "Сохранение записи",
 			want: want{
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain",
 				statusCode:  http.StatusOK,
-				urlRes:      "http://example.com/g8SrEcqnUX",
+				urlRes:      "http://localhost:8080/g8SrEcqnUX",
 			},
 			request: "/",
 			urlBody: "https://music.yandex.ru/artist/8095900",
@@ -48,9 +48,9 @@ func TestHandler_WriteURL(t *testing.T) {
 		{
 			name: "Сохранение записи",
 			want: want{
-				contentType: "text/plain; charset=utf-8",
+				contentType: "text/plain",
 				statusCode:  http.StatusCreated,
-				urlRes:      "http://example.com/gLSwmULGCx",
+				urlRes:      "http://localhost:8080/gLSwmULGCx",
 			},
 			request: "/",
 			urlBody: "https://pkg.go.dev/net/http",
@@ -120,8 +120,6 @@ func TestHandler_GetURL(t *testing.T) {
 	r := chi.NewRouter()
 	ts := httptest.NewServer(r)
 	defer ts.Close()
-
-	handlers.url.URLMap["https://music.yandex.ru/artist/8095900"] = "g8SrEcqnUX"
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
