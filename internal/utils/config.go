@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
+	ServerAddress string `env:"SERVER_ADDRESS" envDefault:":8080"`
 	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	FilePatn      string `env:"FILE_STORAGE_PATH" envDefault:"urls.json"`
 }
@@ -16,17 +16,16 @@ type Config struct {
 var cfg *Config
 
 func InitConfig() {
+	f := &Config{}
 	c := &Config{}
 	if err := env.Parse(c); err != nil {
 		log.Fatal(err)
 	}
 
-	if c == (&Config{}) {
-		flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address")
-		flag.StringVar(&c.BaseURL, "b", c.BaseURL, "Base URL")
-		flag.StringVar(&c.FilePatn, "f", c.FilePatn, "File Path")
-		flag.Parse()
-	}
+	flag.StringVar(&f.ServerAddress, "a", c.ServerAddress, "Server address")
+	flag.StringVar(&f.BaseURL, "b", c.BaseURL, "Base URL")
+	flag.StringVar(&c.FilePatn, "f", c.FilePatn, "File Path")
+	flag.Parse()
 
 	cfg = c
 }
