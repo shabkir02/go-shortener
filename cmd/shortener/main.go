@@ -10,10 +10,11 @@ import (
 )
 
 func main() {
+
 	utils.InitConfig()
 	cfg := utils.GetConfig()
 
 	r := app.NewRouter()
 	color.Green("Server started.")
-	log.Fatal(http.ListenAndServe(cfg.Port, r))
+	log.Fatal(http.ListenAndServe(cfg.ServerAddress, r))
 }

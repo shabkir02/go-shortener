@@ -23,6 +23,7 @@ func NewRouter() chi.Router {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use()
 
 	r.Get("/{hash}", handlers.GetURL)
 	r.Post("/", handlers.WriteURL)
