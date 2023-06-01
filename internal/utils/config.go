@@ -16,16 +16,17 @@ type Config struct {
 var cfg *Config
 
 func InitConfig() {
-	f := &Config{}
 	c := &Config{}
 	if err := env.Parse(c); err != nil {
 		log.Fatal(err)
 	}
 
-	flag.StringVar(&f.ServerAddress, "a", c.ServerAddress, "Server address")
-	flag.StringVar(&f.BaseURL, "b", c.BaseURL, "Base URL")
-	flag.StringVar(&c.FilePatn, "f", c.FilePatn, "File Path")
-	flag.Parse()
+	if c == (&Config{}) {
+		flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address")
+		flag.StringVar(&c.BaseURL, "b", c.BaseURL, "Base URL")
+		flag.StringVar(&c.FilePatn, "f", c.FilePatn, "File Path")
+		flag.Parse()
+	}
 
 	cfg = c
 }
