@@ -2,7 +2,8 @@ package app
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
+	"github.com/shabkir02/go-shortener/internal/middleware"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/transport"
 	"github.com/shabkir02/go-shortener/internal/utils"
@@ -19,11 +20,11 @@ func NewRouter() chi.Router {
 		service.WriteURL(v.HashURL, v.URL)
 	}
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use()
+	r.Use(chiMiddleware.RequestID)
+	r.Use(chiMiddleware.RealIP)
+	r.Use(chiMiddleware.Logger)
+	r.Use(chiMiddleware.Recoverer)
+	r.Use(middleware.GzipHandle)
 
 	r.Get("/{hash}", handlers.GetURL)
 	r.Post("/", handlers.WriteURL)
