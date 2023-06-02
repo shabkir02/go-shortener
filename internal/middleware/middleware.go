@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"compress/gzip"
+	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -29,11 +31,16 @@ func GzipHandle(next http.Handler) http.Handler {
 
 		// создаём gzip.Writer поверх текущего w
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
-		if err != nil {
-			io.WriteString(w, err.Error())
+		if err != nil && !errors.Is(err, io.EOF) {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer gz.Close()
+		defer func() {
+			err = gz.Close()
+			if err != nil && err != io.EOF {
+				log.Print(err.Error())
+			}
+		}()
 
 		w.Header().Set("Content-Encoding", "gzip")
 		// передаём обработчику страницы переменную типа gzipWriter для вывода данных
