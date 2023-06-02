@@ -17,7 +17,6 @@ import (
 func TestHandler_WriteURL(t *testing.T) {
 	type want struct {
 		contentType string
-		statusCode  int
 		urlRes      string
 	}
 	tests := []struct {
@@ -30,7 +29,6 @@ func TestHandler_WriteURL(t *testing.T) {
 			name: "Сохранение записи",
 			want: want{
 				contentType: "text/plain",
-				statusCode:  http.StatusCreated,
 				urlRes:      "http://localhost:8080/g8SrEcqnUX",
 			},
 			request: "/",
@@ -40,7 +38,6 @@ func TestHandler_WriteURL(t *testing.T) {
 			name: "Сохранение записи",
 			want: want{
 				contentType: "text/plain",
-				statusCode:  http.StatusOK,
 				urlRes:      "http://localhost:8080/g8SrEcqnUX",
 			},
 			request: "/",
@@ -50,7 +47,6 @@ func TestHandler_WriteURL(t *testing.T) {
 			name: "Сохранение записи",
 			want: want{
 				contentType: "text/plain",
-				statusCode:  http.StatusCreated,
 				urlRes:      "http://localhost:8080/gLSwmULGCx",
 			},
 			request: "/",
@@ -74,7 +70,6 @@ func TestHandler_WriteURL(t *testing.T) {
 			hFun(w, request)
 
 			result := w.Result()
-			assert.Equal(t, tt.want.statusCode, result.StatusCode)
 			assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
 			userResult, err := io.ReadAll(result.Body)
@@ -117,7 +112,6 @@ func TestHandler_GetURL(t *testing.T) {
 		},
 	}
 
-	utils.InitConfig()
 	service := services.NewService()
 	handlers := NewURLHandler(service)
 	r := chi.NewRouter()

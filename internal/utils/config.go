@@ -2,7 +2,6 @@ package utils
 
 import (
 	"flag"
-	"log"
 
 	"github.com/caarlos0/env/v8"
 )
@@ -16,9 +15,8 @@ type Config struct {
 var cfg *Config
 
 func InitConfig() {
-	c := &Config{}
-	if err := env.Parse(c); err != nil {
-		log.Fatal(err)
+	if cfg != nil {
+		return
 	}
 
 	f := &Config{}
@@ -26,6 +24,13 @@ func InitConfig() {
 	flag.StringVar(&f.BaseURL, "b", "http://localhost:8080", "Base URL")
 	flag.StringVar(&f.FilePatn, "f", "urls.json", "File Path")
 	flag.Parse()
+
+	c := &Config{}
+	err := env.Parse(c)
+	if err != nil {
+		cfg = f
+		return
+	}
 
 	if c.ServerAddress == "" {
 		c.ServerAddress = f.ServerAddress
@@ -41,8 +46,5 @@ func InitConfig() {
 }
 
 func GetConfig() Config {
-	if cfg == nil {
-		InitConfig()
-	}
 	return *cfg
 }
