@@ -21,16 +21,23 @@ func InitConfig() {
 		log.Fatal(err)
 	}
 
+	f := &Config{}
+	flag.StringVar(&f.ServerAddress, "a", ":8080", "Server address")
+	flag.StringVar(&f.BaseURL, "b", "http://localhost:8080", "Base URL")
+	flag.StringVar(&f.FilePatn, "f", "urls.json", "File Path")
+	flag.Parse()
+
 	if c == (&Config{}) {
-		flag.StringVar(&c.ServerAddress, "a", c.ServerAddress, "Server address")
-		flag.StringVar(&c.BaseURL, "b", c.BaseURL, "Base URL")
-		flag.StringVar(&c.FilePatn, "f", c.FilePatn, "File Path")
-		flag.Parse()
+		cfg = f
+		return
 	}
 
 	cfg = c
 }
 
 func GetConfig() Config {
+	if cfg == nil {
+		InitConfig()
+	}
 	return *cfg
 }

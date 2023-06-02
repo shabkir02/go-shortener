@@ -27,7 +27,27 @@ func (s *shortURL) GetURL(HashURL string) models.ShortURLStruct {
 	v, ok := s.urlMap[HashURL]
 
 	if !ok {
-		return models.ShortURLStruct{}
+		cfg := utils.GetConfig()
+		consumer, err := utils.NewConsumer(cfg.FilePatn)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer consumer.Close()
+
+		urls, err := consumer.ReadURLs()
+		if err != nil || len(*urls) <= 0 {
+			return models.ShortURLStruct{}
+		}
+
+		m := models.ShortURLStruct{}
+		for _, v := range *urls {
+			if v.HashURL == HashURL {
+				m = v
+				break
+			}
+		}
+
+		return m
 	}
 
 	return v

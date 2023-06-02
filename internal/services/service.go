@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/shabkir02/go-shortener/internal/models"
@@ -49,6 +50,7 @@ func (h *URLService) GetURL(hashURL string, URL string) (s models.ShortURLStruct
 	}
 
 	u := h.storage.GetURL(ch)
+	fmt.Println(u)
 
 	if u == (models.ShortURLStruct{}) && URL == "" {
 		return models.ShortURLStruct{}, http.StatusBadRequest

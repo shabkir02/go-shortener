@@ -2,27 +2,10 @@ package utils
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 
 	"github.com/shabkir02/go-shortener/internal/models"
 )
-
-func InitFileManager() *[]models.ShortURLStruct {
-	cfg := GetConfig()
-	consumer, err := NewConsumer(cfg.FilePatn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer consumer.Close()
-
-	urls, err := consumer.ReadURLs()
-	if err != nil {
-		return &[]models.ShortURLStruct{}
-	}
-
-	return urls
-}
 
 type producer struct {
 	file    *os.File
@@ -68,6 +51,7 @@ func (c *consumer) ReadURLs() (*[]models.ShortURLStruct, error) {
 	if err := c.decoder.Decode(&event); err != nil {
 		return nil, err
 	}
+
 	return &event, nil
 }
 
