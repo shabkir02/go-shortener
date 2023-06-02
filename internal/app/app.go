@@ -17,10 +17,11 @@ func NewRouter() chi.Router {
 	r.Use(chiMiddleware.RealIP)
 	r.Use(chiMiddleware.Logger)
 	r.Use(chiMiddleware.Recoverer)
+	r.Use(chiMiddleware.Compress(5))
 	r.Use(middleware.GzipHandle)
 
-	r.Get("/{hash}", handlers.GetURL)
 	r.Post("/", handlers.WriteURL)
+	r.Get("/{hash}", handlers.GetURL)
 	r.Post("/api/shorten", handlers.WhriteURLJSON)
 
 	return r
