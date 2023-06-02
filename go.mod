@@ -5,6 +5,7 @@ go 1.20
 require github.com/speps/go-hashids/v2 v2.0.1
 
 require (
+	github.com/caarlos0/env/v8 v8.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.8 // indirect
