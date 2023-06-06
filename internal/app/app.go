@@ -8,6 +8,19 @@ import (
 	"github.com/shabkir02/go-shortener/internal/transport"
 )
 
+// var defaultCompressibleContentTypes = []string{
+// 	"text/html",
+// 	"text/css",
+// 	"text/plain",
+// 	"text/javascript",
+// 	"application/javascript",
+// 	"application/x-javascript",
+// 	"application/json",
+// 	"application/atom+xml",
+// 	"application/rss+xml",
+// 	"image/svg+xml",
+// }
+
 func NewRouter() chi.Router {
 	service := services.NewService()
 	handlers := transport.NewURLHandler(service)
