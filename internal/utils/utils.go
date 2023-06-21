@@ -1,37 +1,51 @@
 package utils
 
 import (
+	"compress/gzip"
+	"io"
+	"net/http"
 	"strings"
 )
 
-func GenerateURL(host string, path string) string {
+func GenerateURL(URL string, path string) string {
 	var sb strings.Builder
-	sb.WriteString(host)
+	sb.WriteString(URL)
 	sb.WriteString("/")
 	sb.WriteString(path)
 	s := sb.String()
 
-	if strings.Contains(s, "https://") || strings.Contains(s, "http://") {
-		return s
-	} else {
-		return "http://" + s
-	}
+	return s
 }
 
-// type Middleware func(http.Handler) http.Handler
+func ValidateURL(URL string) string {
+	if strings.Contains(URL, "https://") || strings.Contains(URL, "http://") {
+		return URL
+	}
 
-// func Conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
-// 	for _, middleware := range middlewares {
-// 		h = middleware(h)
-// 	}
-// 	return h
-// }
+	return "http://" + URL
+}
 
-// func middleware(next http.Handler) http.Handler {
-// 	// собираем Handler приведением типа
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		// разрешаем запросы cross-domain
-// 		w.Header().Set("Access-Control-Allow-Origin", "*")
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
+func HandleReadBody(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+	// переменная reader будет равна r.Body или *gzip.Reader
+	var reader io.Reader
+
+	if r.Header.Get(`Content-Encoding`) == `gzip` {
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return []byte{}, err
+		}
+		reader = gz
+		defer gz.Close()
+	} else {
+		reader = r.Body
+	}
+
+	body, err := io.ReadAll(reader)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return []byte{}, err
+	}
+
+	return body, nil
+}
