@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -37,6 +38,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := string(body)
+	fmt.Println(u)
 
 	if len([]rune(u)) < 2 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -63,6 +65,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -70,6 +73,8 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	var value ShortenURL
 	json.Unmarshal(body, &value)
+
+	fmt.Println(value)
 
 	v, status := h.service.GetURL("", value.URL)
 	if status == http.StatusBadRequest {
@@ -108,4 +113,22 @@ func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Location", utils.ValidateURL(u.URL))
 	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func (h Handler) GetAllURLs(w http.ResponseWriter, r *http.Request) {
+	u := h.service.GetAllURLs()
+
+	if len(u) <= 0 {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	j, err := json.Marshal(u)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }

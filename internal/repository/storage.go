@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"log"
 
 	"github.com/shabkir02/go-shortener/internal/models"
 	"github.com/shabkir02/go-shortener/internal/utils"
@@ -11,12 +10,14 @@ import (
 type Storage interface {
 	GetURL(HashURL string) models.ShortURLStruct
 	AddURL(u []models.ShortURLStruct) ([]models.ShortURLStruct, error)
+	GetAllURLs() []models.ShortURLStruct
 }
 
 type ShortURLs = map[string]models.ShortURLStruct
 
 type shortURL struct {
 	urlMap ShortURLs
+	Storage
 }
 
 func NewStorageURL() *shortURL {
@@ -30,7 +31,7 @@ func (s *shortURL) GetURL(HashURL string) models.ShortURLStruct {
 		cfg := utils.GetConfig()
 		consumer, err := utils.NewConsumer(cfg.FilePatn)
 		if err != nil {
-			log.Fatal(err)
+			return models.ShortURLStruct{}
 		}
 		defer consumer.Close()
 
@@ -65,7 +66,7 @@ func (s *shortURL) AddURL(u []models.ShortURLStruct) ([]models.ShortURLStruct, e
 	cfg := utils.GetConfig()
 	producer, err := utils.NewProducer(cfg.FilePatn)
 	if err != nil {
-		log.Fatal(err)
+		return []models.ShortURLStruct{}, err
 	}
 	defer producer.Close()
 
@@ -78,4 +79,21 @@ func (s *shortURL) AddURL(u []models.ShortURLStruct) ([]models.ShortURLStruct, e
 	producer.WriteURL(&mappedURLs)
 
 	return u, nil
+}
+
+func (s *shortURL) GetAllURLs() []models.ShortURLStruct {
+	cfg := utils.GetConfig()
+	consumer, err := utils.NewConsumer(cfg.FilePatn)
+	if err != nil {
+		return nil
+	}
+	defer consumer.Close()
+
+	urls, err := consumer.ReadURLs()
+
+	if err != nil || len(*urls) <= 0 {
+		return []models.ShortURLStruct{}
+	}
+
+	return *urls
 }

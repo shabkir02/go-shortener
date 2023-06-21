@@ -6,6 +6,7 @@ import (
 
 	"github.com/shabkir02/go-shortener/internal/models"
 	"github.com/shabkir02/go-shortener/internal/repository"
+	"github.com/shabkir02/go-shortener/internal/utils"
 	hashids "github.com/speps/go-hashids/v2"
 )
 
@@ -64,4 +65,19 @@ func (h *URLService) GetURL(hashURL string, URL string) (s models.ShortURLStruct
 
 	return u, http.StatusOK
 
+}
+
+func (h *URLService) GetAllURLs() []models.AllURLsStruct {
+	m := h.storage.GetAllURLs()
+	e := make([]models.AllURLsStruct, len(m))
+	cfg := utils.GetConfig()
+
+	for i, v := range m {
+		e[i] = models.AllURLsStruct{
+			OriginalURL: v.URL,
+			ShortURL:    utils.GenerateURL(cfg.BaseURL, v.HashURL),
+		}
+	}
+
+	return e
 }
