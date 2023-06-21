@@ -2,8 +2,6 @@ package transport
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -30,15 +28,13 @@ func NewURLHandler(u *services.URLService) *Handler {
 }
 
 func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
+	body, err := utils.HandleReadBody(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	u := string(body)
-	fmt.Println(u)
 
 	if len([]rune(u)) < 2 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -59,13 +55,11 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusInternalServerError)
+	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
 func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-
+	body, err := utils.HandleReadBody(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -73,8 +67,6 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	var value ShortenURL
 	json.Unmarshal(body, &value)
-
-	fmt.Println(value)
 
 	v, status := h.service.GetURL("", value.URL)
 	if status == http.StatusBadRequest {
@@ -99,7 +91,7 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusInternalServerError)
+	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
@@ -124,7 +116,7 @@ func (h Handler) GetAllURLs(w http.ResponseWriter, r *http.Request) {
 
 	j, err := json.Marshal(u)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
