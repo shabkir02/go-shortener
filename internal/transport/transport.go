@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -55,7 +56,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Error(w, err.Error(), http.StatusInternalServerError)
+	http.Error(w, errors.New("somthing went wrong").Error(), http.StatusInternalServerError)
 }
 
 func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +92,7 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Error(w, err.Error(), http.StatusInternalServerError)
+	http.Error(w, errors.New("somthing went wrong").Error(), http.StatusInternalServerError)
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
