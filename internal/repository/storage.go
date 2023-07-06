@@ -1,87 +1,73 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/shabkir02/go-shortener/internal/models"
 	"github.com/shabkir02/go-shortener/internal/utils"
 )
 
 type Storage interface {
 	GetURL(HashURL string) models.ShortURLStruct
-	AddURL(u []models.ShortURLStruct) ([]models.ShortURLStruct, error)
-	GetAllURLs() []models.ShortURLStruct
+	AddURL(u models.ShortURLStruct) (models.ShortURLStruct, error)
+	GetAllURLs(userID string) []models.ShortURLStruct
 }
 
 type ShortURLs = map[string]models.ShortURLStruct
 
 type shortURL struct {
-	urlMap ShortURLs
 	Storage
 }
 
 func NewStorageURL() *shortURL {
-	return &shortURL{urlMap: make(ShortURLs)}
+	return &shortURL{}
 }
 
 func (s *shortURL) GetURL(HashURL string) models.ShortURLStruct {
-	v, ok := s.urlMap[HashURL]
+	cfg := utils.GetConfig()
+	consumer, err := utils.NewConsumer(cfg.FilePatn)
+	if err != nil {
+		return models.ShortURLStruct{}
+	}
+	defer consumer.Close()
 
-	if !ok {
-		cfg := utils.GetConfig()
-		consumer, err := utils.NewConsumer(cfg.FilePatn)
-		if err != nil {
-			return models.ShortURLStruct{}
-		}
-		defer consumer.Close()
-
-		urls, err := consumer.ReadURLs()
-		if err != nil || len(*urls) <= 0 {
-			return models.ShortURLStruct{}
-		}
-
-		m := models.ShortURLStruct{}
-		for _, v := range *urls {
-			if v.HashURL == HashURL {
-				m = v
-				break
-			}
-		}
-
-		return m
+	urls, err := consumer.ReadURLs()
+	if err != nil || len(*urls) <= 0 {
+		return models.ShortURLStruct{}
 	}
 
-	return v
+	m := models.ShortURLStruct{}
+	for _, v := range *urls {
+		if v.HashURL == HashURL {
+			m = v
+			break
+		}
+	}
+
+	return m
 }
 
-func (s *shortURL) AddURL(u []models.ShortURLStruct) ([]models.ShortURLStruct, error) {
-	if len(u) <= 0 {
-		return []models.ShortURLStruct{}, errors.New("somthing went wrong")
-	}
+func (s *shortURL) AddURL(u models.ShortURLStruct) (models.ShortURLStruct, error) {
+	allURLs := s.GetAllURLs("")
+	var currentURLs []models.ShortURLStruct
 
-	for _, v := range u {
-		s.urlMap[v.HashURL] = v
+	for _, v := range allURLs {
+		if u.HashURL != v.HashURL {
+			currentURLs = append(currentURLs, v)
+		}
 	}
+	urls := append(currentURLs, u)
 
 	cfg := utils.GetConfig()
 	producer, err := utils.NewProducer(cfg.FilePatn)
 	if err != nil {
-		return []models.ShortURLStruct{}, err
+		return models.ShortURLStruct{}, err
 	}
 	defer producer.Close()
-
-	var mappedURLs []models.ShortURLStruct
-
-	for k, v := range s.urlMap {
-		mappedURLs = append(mappedURLs, models.ShortURLStruct{HashURL: k, URL: v.URL})
-	}
-
-	producer.WriteURL(&mappedURLs)
+	producer.WriteURL(&urls)
 
 	return u, nil
 }
 
-func (s *shortURL) GetAllURLs() []models.ShortURLStruct {
+func (s *shortURL) GetAllURLs(userID string) []models.ShortURLStruct {
 	cfg := utils.GetConfig()
 	consumer, err := utils.NewConsumer(cfg.FilePatn)
 	if err != nil {
@@ -90,9 +76,22 @@ func (s *shortURL) GetAllURLs() []models.ShortURLStruct {
 	defer consumer.Close()
 
 	urls, err := consumer.ReadURLs()
-
-	if err != nil || len(*urls) <= 0 {
+	if err != nil {
 		return []models.ShortURLStruct{}
+	}
+
+	if userID != "" {
+		var userURLs []models.ShortURLStruct
+
+		for _, v := range *urls {
+			for _, ID := range v.UserIDs {
+				if ID == userID {
+					userURLs = append(userURLs, v)
+					break
+				}
+			}
+		}
+		return userURLs
 	}
 
 	return *urls

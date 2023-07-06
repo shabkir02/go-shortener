@@ -48,7 +48,9 @@ func NewConsumer(fileName string) (*consumer, error) {
 
 func (c *consumer) ReadURLs() (*[]models.ShortURLStruct, error) {
 	event := []models.ShortURLStruct{}
-	if err := c.decoder.Decode(&event); err != nil {
+
+	err := c.decoder.Decode(&event)
+	if err != nil {
 		return nil, err
 	}
 

@@ -1,11 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
+
+	"github.com/gofrs/uuid"
 )
 
 func generateRandom(size int) ([]byte, error) {
@@ -20,38 +23,54 @@ func generateRandom(size int) ([]byte, error) {
 }
 
 func generateHash() ([]byte, error) {
-	src, err := generateRandom(64)
+	src, err := uuid.NewV4()
 	if err != nil {
 		return []byte{}, err
 	}
 	// создаём случайный ключ
-	key, err := generateRandom(16)
+	key, err := uuid.NewV4()
 	if err != nil {
 		return []byte{}, err
 	}
 	// подписываем алгоритмом HMAC, используя SHA256
-	h := hmac.New(sha256.New, key)
-	h.Write(src)
+	h := hmac.New(sha256.New, []byte(key.String()))
+	h.Write([]byte(src.String()))
 	dst := h.Sum(nil)
 
 	return dst, nil
 }
 
+type contextKey string
+
+const (
+	UserIDContextKey contextKey = "user"
+)
+
 func CheckUserCookie(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		_, err := r.Cookie("user")
+		c, err := r.Cookie("user")
+		var userHash string
+
 		if err != nil {
 			h, err := generateHash()
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			// r.Context()
-			cookie := http.Cookie{Name: "user", Value: hex.EncodeToString(h)}
+
+			he := hex.EncodeToString(h)
+			cookie := http.Cookie{Name: "user", Value: he}
 			http.SetCookie(w, &cookie)
+
+			userHash = he
+		} else {
+			userHash = c.Value
 		}
 
-		next.ServeHTTP(w, r)
+		r.Context()
+		ctx := context.WithValue(r.Context(), UserIDContextKey, userHash)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -42,7 +42,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, status := h.service.GetURL("", u)
+	c, status := h.service.GetURL(models.ShortURLStruct{URL: u}, r.Context())
 	if status == http.StatusBadRequest {
 		return
 	}
@@ -61,6 +61,7 @@ func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 	body, err := utils.HandleReadBody(w, r)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,7 +70,7 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 	var value ShortenURL
 	json.Unmarshal(body, &value)
 
-	v, status := h.service.GetURL("", value.URL)
+	v, status := h.service.GetURL(models.ShortURLStruct{URL: value.URL}, r.Context())
 	if status == http.StatusBadRequest {
 		http.Error(w, "does not exist", http.StatusBadRequest)
 		return
@@ -98,8 +99,9 @@ func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 	hash := chi.URLParam(r, "hash")
 
-	u, _ := h.service.GetURL(hash, "")
-	if u == (models.ShortURLStruct{}) {
+	u, _ := h.service.GetURL(models.ShortURLStruct{HashURL: hash}, r.Context())
+
+	if u.IsEmpty() {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
@@ -109,7 +111,7 @@ func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) GetAllURLs(w http.ResponseWriter, r *http.Request) {
-	u := h.service.GetAllURLs()
+	u := h.service.GetAllURLs(r.Context())
 
 	if len(u) <= 0 {
 		w.WriteHeader(http.StatusNoContent)

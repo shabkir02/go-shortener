@@ -9,6 +9,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/go-chi/chi/v5 v5.0.8 // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
