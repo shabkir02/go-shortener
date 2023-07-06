@@ -1,67 +1,129 @@
 package transport
 
 import (
-	"fmt"
-	"io"
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shabkir02/go-shortener/internal/models"
 	"github.com/shabkir02/go-shortener/internal/services"
 	"github.com/shabkir02/go-shortener/internal/utils"
 )
 
 type Handler struct {
-	url *services.URLService
+	service *services.URLService
+	baseURL string
+}
+type ShortenURL struct {
+	URL string `json:"url"`
+}
+type ShortenURLRes struct {
+	ResultURL string `json:"result"`
 }
 
 func NewURLHandler(u *services.URLService) *Handler {
-	return &Handler{url: u}
+	cfg := utils.GetConfig()
+
+	return &Handler{service: u, baseURL: cfg.BaseURL}
 }
 
 func (h Handler) WriteURL(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusBadRequest)
-	}
-
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	u := string(body)
-
+	body, err := utils.HandleReadBody(w, r)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	u := string(body)
 
 	if len([]rune(u)) < 2 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-type", "text/plain; charset=utf-8")
-	if h.url.URLMap[u] != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(utils.GenerateURL(r.Host, h.url.URLMap[u])))
+	c, status := h.service.GetURL(models.ShortURLStruct{URL: u}, r.Context())
+	if status == http.StatusBadRequest {
 		return
 	}
 
-	newURL := h.url.WriteURL(u)
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(utils.GenerateURL(r.Host, newURL)))
+	if status != http.StatusBadRequest {
+		cfg := utils.GetConfig()
+
+		w.Header().Set("Content-type", "text/plain")
+		w.WriteHeader(status)
+		w.Write([]byte(utils.GenerateURL(cfg.BaseURL, c.HashURL)))
+		return
+	}
+
+	http.Error(w, errors.New("somthing went wrong").Error(), http.StatusInternalServerError)
+}
+
+func (h Handler) WhriteURLJSON(w http.ResponseWriter, r *http.Request) {
+	body, err := utils.HandleReadBody(w, r)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var value ShortenURL
+	json.Unmarshal(body, &value)
+
+	v, status := h.service.GetURL(models.ShortURLStruct{URL: value.URL}, r.Context())
+	if status == http.StatusBadRequest {
+		http.Error(w, "does not exist", http.StatusBadRequest)
+		return
+	}
+
+	if status != http.StatusBadRequest {
+		cfg := utils.GetConfig()
+
+		m, err := json.Marshal(ShortenURLRes{
+			ResultURL: utils.GenerateURL(cfg.BaseURL, v.HashURL),
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-type", "application/json")
+		w.WriteHeader(status)
+		w.Write(m)
+		return
+	}
+
+	http.Error(w, errors.New("somthing went wrong").Error(), http.StatusInternalServerError)
 }
 
 func (h Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 	hash := chi.URLParam(r, "hash")
 
-	u := h.url.GetURL(hash)
+	u, _ := h.service.GetURL(models.ShortURLStruct{HashURL: hash}, r.Context())
 
-	fmt.Println(u)
-
-	if u != "" {
-		w.Header().Set("Location", u)
-		w.WriteHeader(http.StatusTemporaryRedirect)
+	if u.IsEmpty() {
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
-	http.Error(w, "bad request", http.StatusBadRequest)
+	w.Header().Set("Location", utils.ValidateURL(u.URL))
+	w.WriteHeader(http.StatusTemporaryRedirect)
+}
 
+func (h Handler) GetAllURLs(w http.ResponseWriter, r *http.Request) {
+	u := h.service.GetAllURLs(r.Context())
+
+	if len(u) <= 0 {
+		w.WriteHeader(http.StatusNoContent)
+	}
+
+	j, err := json.Marshal(u)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }
