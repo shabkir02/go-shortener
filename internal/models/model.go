@@ -14,11 +14,11 @@ func (s *ShortURLStruct) IsEmpty() bool {
 	return false
 }
 
-func (s *ShortURLStruct) UserExist(userId string) bool {
+func (s *ShortURLStruct) UserExist(userID string) bool {
 	exist := false
 
 	for _, v := range s.UserIDs {
-		if v == userId {
+		if v == userID {
 			exist = true
 			break
 		}
